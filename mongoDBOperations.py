@@ -1,6 +1,7 @@
 import pymongo
 import pandas as pd
 import json
+from logging import Logger
 
 
 class MongoDBManagement:
@@ -26,6 +27,7 @@ class MongoDBManagement:
             mongo_client = pymongo.MongoClient(self.url)
             return mongo_client
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(getMongoDBClientObject): Something went wrong on creation of client object\n" + str(e))
             raise Exception("(getMongoDBClientObject): Something went wrong on creation of client object\n" + str(e))
 
     def closeMongoDBconnection(self, mongo_client):

@@ -12,6 +12,8 @@ import pandas as pd
 
 from mongoDBOperations import MongoDBManagement
 
+from logger_class import Logger
+
 
 class FlipkratScrapper:
 
@@ -23,6 +25,7 @@ class FlipkratScrapper:
         try:
             self.driver = webdriver.Chrome(executable_path=executable_path, chrome_options=chrome_options)
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(__init__): Something went wrong on initializing the webdriver object.\n" + str(e))
             raise Exception(f"(__init__): Something went wrong on initializing the webdriver object.\n" + str(e))
 
     def waitExplicitlyForCondition(self, element_to_be_found):
@@ -35,6 +38,7 @@ class FlipkratScrapper:
                 expected_conditions.presence_of_element_located((By.CLASS_NAME, element_to_be_found)))
             return True
         except Exception as e:
+            Logger('test.log').logger('ERROR', str(e))
             return False
 
     def getCurrentWindowUrl(self):
@@ -45,6 +49,7 @@ class FlipkratScrapper:
             current_window_url = self.driver.current_url
             return current_window_url
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(getCurrentWindowUrl) - Something went wrong on retrieving current url.\n" + str(e))
             raise Exception(f"(getCurrentWindowUrl) - Something went wrong on retrieving current url.\n" + str(e))
 
     def getLocatorsObject(self):
@@ -55,6 +60,7 @@ class FlipkratScrapper:
             locators = ObjectRepository()
             return locators
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(getLocatorsObject) - Could not find locators\n" + str(e))
             raise Exception(f"(getLocatorsObject) - Could not find locators\n" + str(e))
 
     def findElementByXpath(self, xpath):
@@ -66,6 +72,7 @@ class FlipkratScrapper:
             return element
         except Exception as e:
             # self.driver.refresh()
+            Logger('test.log').logger('ERROR', f"(findElementByXpath) - XPATH provided was not found.\n" + str(e))
             raise Exception(f"(findElementByXpath) - XPATH provided was not found.\n" + str(e))
 
     def findElementByClass(self, classpath):
@@ -77,6 +84,7 @@ class FlipkratScrapper:
             return element
         except Exception as e:
             # self.driver.refresh()
+            Logger('test.log').logger('ERROR', f"(findElementByClass) - ClassPath provided was not found.\n" + str(e))
             raise Exception(f"(findElementByClass) - ClassPath provided was not found.\n" + str(e))
 
     def findElementByTag(self, tag_name):
@@ -87,6 +95,7 @@ class FlipkratScrapper:
             element = self.driver.find_elements_by_tag_name(tag_name)
             return element
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(findElementByTag) - ClassPath provided was not found.\n" + str(e))
             raise Exception(f"(findElementByTag) - ClassPath provided was not found.\n" + str(e))
 
     def findingElementsFromPageUsingClass(self, element_to_be_searched):
@@ -97,6 +106,7 @@ class FlipkratScrapper:
             result = self.driver.find_elements(By.CLASS_NAME, value=element_to_be_searched)
             return result
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(findingElementsFromPageUsingClass) - Something went wrong on searching the element.\n" + str(e))
             raise Exception(
                 f"(findingElementsFromPageUsingClass) - Something went wrong on searching the element.\n" + str(e))
 
@@ -108,6 +118,7 @@ class FlipkratScrapper:
             result = self.driver.find_elements(By.CSS_SELECTOR, value=element_to_be_searched)
             return result
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(findingElementsFromPageUsingClass) - Something went wrong on searching the element.\n" + str(e))
             raise Exception(
                 f"(findingElementsFromPageUsingClass) - Something went wrong on searching the element.\n" + str(e))
 
@@ -123,6 +134,7 @@ class FlipkratScrapper:
             else:
                 return False
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(openUrl) - Something went wrong on opening the url {url}.\n" + str(e))
             raise Exception(f"(openUrl) - Something went wrong on opening the url {url}.\n" + str(e))
 
     def login_popup_handle(self):
@@ -135,6 +147,7 @@ class FlipkratScrapper:
             self.findElementByXpath(xpath=locator.getLoginCloseButton()).click()
             return True
         except Exception as e:
+            Logger('test.log').logger('ERROR', "(login_popup_handle) - Failed to handle popup.\n" + str(e))
             raise Exception("(login_popup_handle) - Failed to handle popup.\n" + str(e))
 
     def searchProduct(self, searchString):
@@ -150,6 +163,7 @@ class FlipkratScrapper:
             return True
         except Exception as e:
             # self.driver.refresh()
+            Logger('test.log').logger('ERROR', f"(searchProduct) - Something went wrong on searching.\n" + str(e))
             raise Exception(f"(searchProduct) - Something went wrong on searching.\n" + str(e))
 
     def generateTitle(self, search_string):
@@ -161,6 +175,7 @@ class FlipkratScrapper:
             title = search_string + "- Buy Products Online at Best Price in India - All Categories | Flipkart.com"
             return title
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(generateTitle) - Something went wrong while generating complete title.\n" + str(e))
             raise Exception(f"(generateTitle) - Something went wrong while generating complete title.\n" + str(e))
 
     def getProductLinks(self):
@@ -180,6 +195,7 @@ class FlipkratScrapper:
                     count = count + 1
                     yield str(i)
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(getProductLinks) - Something went wrong on getting link from the page.")
             raise Exception(f"(getProductLinks) - Something went wrong on getting link from the page.")
 
     def actualProductLinks(self):
@@ -190,7 +206,8 @@ class FlipkratScrapper:
             productLinks = []
             count = 0
             for link in self.getProductLinks():
-                if count > 15: break
+                if count > 15:
+                    break
                 if '?pid=' in link:
                     print(link)
                     productLinks.append(link)
@@ -199,6 +216,7 @@ class FlipkratScrapper:
                     continue
             return productLinks
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(actualProductLinks) - Something went wrong while searching the url.\n" + str(e))
             raise Exception(f"(actualProductLinks) - Something went wrong while searching the url.\n" + str(e))
 
     def getLinkForExpectedReviewCount(self, expected_review, searchString):
@@ -217,6 +235,7 @@ class FlipkratScrapper:
             self.openUrl(url=url_to_hit)
             return True
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(getLinkForExpectedReviewCount) - Failed to retrive the link for product having more than " f"expectedcount of review.\n" + str(e))
             raise Exception(
                 f"(getLinkForExpectedReviewCount) - Failed to retrive the link for product having more than "
                 f"expectedcount of review.\n" + str(
@@ -232,6 +251,7 @@ class FlipkratScrapper:
             else:
                 return False
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(checkVisibilityOfElement) - Not able to check for the element.\n" + str(e))
             raise Exception(f"(checkVisibilityOfElement) - Not able to check for the element.\n" + str(e))
 
     def getProductName(self):
@@ -248,6 +268,7 @@ class FlipkratScrapper:
             print(product_name)
             return product_name
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(getProductName) - Not able to get the product name.\n" + str(e))
             raise Exception(f"(getProductName) - Not able to get the product name.\n" + str(e))
 
     def getProductSearched(self, search_string):
@@ -257,6 +278,7 @@ class FlipkratScrapper:
         try:
             return search_string
         except Exception as e:
+            Logger('test.log').logger('INFO', f'product searched {str(e)}')
             return search_string
 
     def getPrice(self):
@@ -269,6 +291,7 @@ class FlipkratScrapper:
             print(original_price)
             return original_price
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(getPrice) - Not able to get the price of product.\n" + str(e))
             raise Exception(f"(getPrice) - Not able to get the price of product.\n" + str(e))
 
     def getDiscountedPercent(self):
@@ -281,6 +304,7 @@ class FlipkratScrapper:
             print(discounted_price)
             return discounted_price
         except Exception as e:
+            Logger('test.log').logger('INFO', 'no discount available')
             return "No Discount"
 
     def checkMoreOffer(self):
@@ -294,6 +318,7 @@ class FlipkratScrapper:
             else:
                 return False
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(checkMoreOffer) - Trouble in finding more offer link.\n" + str(e))
             raise Exception(f"(checkMoreOffer) - Trouble in finding more offer link.\n" + str(e))
 
     def clickOnMoreOffer(self):
@@ -310,6 +335,7 @@ class FlipkratScrapper:
             else:
                 return False
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(clickOnMoreOffer) - Not able to click on more offer button.\n" + str(e))
             raise Exception(f"(clickOnMoreOffer) - Not able to click on more offer button.\n" + str(e))
 
     def getAvailableOffer(self):
@@ -329,6 +355,7 @@ class FlipkratScrapper:
                 offer_details = "No Offer For the product"
             return offer_details
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(getAvailableOffer) - Not able to get the offer details of product.\n" + str(e))
             raise Exception(f"(getAvailableOffer) - Not able to get the offer details of product.\n" + str(e))
 
     def getOfferDetails(self):
@@ -341,6 +368,7 @@ class FlipkratScrapper:
             print(split_offers[1:])
             return split_offers[1:]
         except Exception as e:
+            Logger('test.log').logger('INFO', 'no offer available')
             return "No offer Available"
 
     def checkViewPlanForEMI(self):
@@ -357,6 +385,7 @@ class FlipkratScrapper:
             else:
                 return False
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(checkViewPlanForEMI) - Error on finding view plans link for EMI.\n" + str(e))
             raise Exception(f"(checkViewPlanForEMI) - Error on finding view plans link for EMI.\n" + str(e))
 
     def getEMIDetails(self):
@@ -373,6 +402,7 @@ class FlipkratScrapper:
             else:
                 return "NO EMI Plans"
         except Exception as e:
+            Logger('test.log').logger('INFO', 'no emi plan')
             return "NO EMI Plans"
 
     def getTotalReviewPage(self):
@@ -392,6 +422,7 @@ class FlipkratScrapper:
             value = str(split_values[0]).split()[-1]
             return int(value)
         except Exception as e:
+            Logger('test.log').logger('INFO', 'only one review page')
             return int(1)
 
     def wait(self):
@@ -401,6 +432,7 @@ class FlipkratScrapper:
         try:
             self.driver.implicitly_wait(2)
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(wait) - Something went wrong.\n" + str(e))
             raise Exception(f"(wait) - Something went wrong.\n" + str(e))
 
     def getRatings(self):
@@ -412,6 +444,7 @@ class FlipkratScrapper:
             rating = self.findingElementsFromPageUsingCSSSelector(locator.getRatings())
             return rating
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(getRatings) - Not able to get the rating details of product.\n" + str(e))
             raise Exception(f"(getRatings) - Not able to get the rating details of product.\n" + str(e))
 
     def getComments(self):
@@ -427,6 +460,7 @@ class FlipkratScrapper:
                 comment = self.findingElementsFromPageUsingClass(comment_object[1])
             return comment
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(getComment) - Not able to get the comment details of product.\n" + str(e))
             raise Exception(f"(getComment) - Not able to get the comment details of product.\n" + str(e))
 
     def getCustomerNamesAndReviewAge(self):
@@ -438,6 +472,7 @@ class FlipkratScrapper:
             customer_name = self.findingElementsFromPageUsingClass(locator.getCustomerName())
             return customer_name
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(getCustomerNamesAndReviewAge) - Not able to get the name of product.\n" + str(e))
             raise Exception(f"(getCustomerNamesAndReviewAge) - Not able to get the name of product.\n" + str(e))
 
     def checkForNextPageLink(self):
@@ -451,6 +486,7 @@ class FlipkratScrapper:
             else:
                 return False
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(checkForNextPageLink) - Not able to click on next button.\n" + str(e))
             raise Exception(f"(checkForNextPageLink) - Not able to click on next button.\n" + str(e))
 
     def getExpectedCountForLooping(self, expected_review):
@@ -461,6 +497,7 @@ class FlipkratScrapper:
             expected_count = expected_review / 10
             return int(expected_count)
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(getExpectedCountForLooping) - Something went wrong with review count.\n" + str(e))
             raise Exception(f"(getExpectedCountForLooping) - Something went wrong with review count.\n" + str(e))
 
     def getReviewDetailsForProduct(self):
@@ -479,6 +516,7 @@ class FlipkratScrapper:
             yield ratings, comment, customer_name, review_age
         except Exception as e:
             # self.driver.refresh()
+            Logger('test.log').logger('ERROR', f"(getReviewDetailsForProduct) - Something went wrong on getting details of review for the product.\n" + str(e))
             raise Exception(
                 f"(getReviewDetailsForProduct) - Something went wrong on getting details of review for the product.\n" + str(
                     e))
@@ -492,6 +530,7 @@ class FlipkratScrapper:
             review_age = list_of_custname_and_reviewage[1::2]
             return customer_name, review_age
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(separateCustomernameAndReviewAge) - Something went wrong.\n" + str(e))
             raise Exception(f"(separateCustomernameAndReviewAge) - Something went wrong.\n" + str(e))
 
     def generatingResponse(self, product_searched, product_name, price, discount_percent, offer_details, EMI, result):
@@ -515,6 +554,7 @@ class FlipkratScrapper:
             response_dict["discount_percent"] = discount_percent
             return response_dict
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(generatingResponse) - Something went wrong on generating response")
             raise Exception(f"(generatingResponse) - Something went wrong on generating response")
 
     def generateDataForColumnAndFrame(self, response):
@@ -533,6 +573,7 @@ class FlipkratScrapper:
             print(data_frame1)
             return data_frame1
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(dataGeneration) - Something went wrong on creating data frame and data for column.\n" + str(e))
             raise Exception(
                 f"(dataGeneration) - Something went wrong on creating data frame and data for column.\n" + str(e))
 
@@ -550,6 +591,7 @@ class FlipkratScrapper:
                     data_frame2.insert(0, column_name, flatten_result)
             return data_frame2
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(dataGeneration) - Something went wrong on creating data frame and data for column.\n" + str(e))
             raise Exception(
                 f"(dataGeneration) - Something went wrong on creating data frame and data for column.\n" + str(e))
 
@@ -564,6 +606,7 @@ class FlipkratScrapper:
             data_frame = pd.concat(frame, axis=1)
             return data_frame
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(createDataFrame) - Something went wrong on creating data frame.\n" + str(e))
             raise Exception(f"(createDataFrame) - Something went wrong on creating data frame.\n" + str(e))
 
     def saveDataFrameToFile(self, dataframe, file_name):
@@ -573,6 +616,7 @@ class FlipkratScrapper:
         try:
             dataframe.to_csv(file_name)
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(saveDataFrameToFile) - Unable to save data to the file.\n" + str(e))
             raise Exception(f"(saveDataFrameToFile) - Unable to save data to the file.\n" + str(e))
 
     def closeConnection(self):
@@ -582,6 +626,7 @@ class FlipkratScrapper:
         try:
             self.driver.close()
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(closeConnection) - Something went wrong on closing connection.\n" + str(e))
             raise Exception(f"(closeConnection) - Something went wrong on closing connection.\n" + str(e))
 
     def getReviewsToDisplay(self, searchString, expected_review, username, password, review_count):
@@ -646,4 +691,5 @@ class FlipkratScrapper:
                             self.openUrl(url=new_url)
             return search
         except Exception as e:
+            Logger('test.log').logger('ERROR', f"(getReviewsToDisplay) - Something went wrong on yielding data.\n" + str(e))
             raise Exception(f"(getReviewsToDisplay) - Something went wrong on yielding data.\n" + str(e))

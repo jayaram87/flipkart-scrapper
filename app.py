@@ -4,7 +4,7 @@ import io
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 
-from logger_class import getLog
+from logger_class import getLog, Logger
 from flask import Flask, render_template, request, jsonify, Response, url_for, redirect
 from flask_cors import CORS, cross_origin
 import pandas as pd
@@ -16,7 +16,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 rows = {}
 collection_name = None
 
-logger = getLog('flipkrat.py')
+#logger = getLog('flipkrat.py')
 
 free_status = True
 db_name = 'Flipkart-Scrapper'
@@ -48,7 +48,7 @@ class threadClass:
                                                                    searchString=self.searchString, username='Kavita',
                                                                    password='kavita1610',
                                                                    review_count=self.review_count)
-        logger.info("Thread run completed")
+        Logger('test.log').logger('INFO', "Thread run completed")
         free_status = True
 
 
@@ -70,11 +70,14 @@ def index():
                                                chrome_options=chrome_options)
             mongoClient = MongoDBManagement(username='Kavita', password='kavita1610')
             scrapper_object.openUrl("https://www.flipkart.com/")
-            logger.info("Url hitted")
+            Logger('test.log').logger('INFO', 'Url hitted')
+            #logger.info("Url hitted")
             scrapper_object.login_popup_handle()
-            logger.info("login popup handled")
+            Logger('test.log').logger('INFO', 'login popup handled')
+            #logger.info("login popup handled")
             scrapper_object.searchProduct(searchString=searchString)
-            logger.info(f"Search begins for {searchString}")
+            Logger('test.log').logger('INFO', f'Search begins for {searchString}')
+            #logger.info(f"Search begins for {searchString}")
             if mongoClient.isCollectionPresent(collection_name=searchString, db_name=db_name):
                 response = mongoClient.findAllRecords(db_name=db_name, collection_name=searchString)
                 reviews = [i for i in response]
@@ -82,13 +85,15 @@ def index():
                     result = [reviews[i] for i in range(0, expected_review)]
                     scrapper_object.saveDataFrameToFile(file_name="static/scrapper_data.csv",
                                                         dataframe=pd.DataFrame(result))
-                    logger.info("Data saved in scrapper file")
+                    Logger('test.log').logger('INFO', "Data saved in scrapper file")
+                    #logger.info("Data saved in scrapper file")
                     return render_template('results.html', rows=result)  # show the results to user
                 else:
                     review_count = len(reviews)
                     threadClass(expected_review=expected_review, searchString=searchString,
                                 scrapper_object=scrapper_object, review_count=review_count)
-                    logger.info("data saved in scrapper file")
+                    Logger('test.log').logger('INFO', "data saved in scrapper file")
+                    #logger.info("data saved in scrapper file")
                     return redirect(url_for('feedback'))
             else:
                 threadClass(expected_review=expected_review, searchString=searchString, scrapper_object=scrapper_object,
