@@ -9,3 +9,10 @@ root - 2021-08-07 00:46:48,097 - record insertion failed
 root - 2021-08-07 00:48:14,876 - Unable to delete table 
  errors={'0b9d4643-a091-41bf-9058-8eb4f4b88812-us-east-1.db.astra.datastax.com:29042:c46c39c3-200e-402b-bba8-1de4ddda064c': 'Client request timeout. See Session.execute[_async](timeout)'}, last_host=0b9d4643-a091-41bf-9058-8eb4f4b88812-us-east-1.db.astra.datastax.com:29042:c46c39c3-200e-402b-bba8-1de4ddda064c
 root - 2021-08-07 00:50:44,455 - record inserted into table table1 in keyspace data
+root - 2021-08-10 00:57:53,525 - record inserted into table table1 in keyspace data
+root - 2021-08-11 21:15:21,039 - Url hitted
+root - 2021-08-11 21:15:21,145 - login popup handled
+root - 2021-08-11 21:15:21,333 - Search begins for iphone
+root - 2021-08-11 21:15:24,626 - Data saved in scrapper file
+werkzeug - 2021-08-11 21:15:24,662 - 127.0.0.1 - - [11/Aug/2021 21:15:24] "[37mPOST / HTTP/1.1[0m" 200 -
+root - 2021-08-11 21:16:19,996 - record inserted into table table1 in keyspace data

@@ -152,10 +152,6 @@ class DBOps:
     def insertOneRecord(self, key_name, table_name, record):
         """
         Function inserts one record into the table in keyspace
-        :param key_name:
-        :param table_name:
-        :param record:
-        :return:
         """
         try:
             session = self.createSession()
@@ -173,12 +169,22 @@ class DBOps:
             else:
                 table = self.createTable(key_name, table_name)
                 query = f"""INSERT INTO {key_name}.{table_name}({table_key}) values ({values});"""
-                print(query)
                 session.execute(query)
                 self.closeSession(session)
                 Logger('test.log').logger('INFO', f'record inserted into table {table_name} in keyspace {key_name}')
         except Exception as e:
             Logger('test.log').logger('ERROR', f'record insertion failed \n {str(e)}')
+
+    def insertMultiRecords(self, key_name, table_name, records):
+        """
+        Function inserts multiple records into a table in the key space
+        """
+        try:
+            for record in records:
+                self.insertOneRecord(key_name, table_name, record)
+        except Exception as e:
+            Logger('test.log').logger('ERROR', f'record insertion failed \n {str(e)}')
+
 
 
 a = os.path.join(os.getcwd(), 'config', 'secure-connect-flipkart-scrapper.zip')
