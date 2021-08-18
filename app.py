@@ -3,12 +3,15 @@ import threading
 import io
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
+import os
 
 from logger_class import getLog, Logger
 from flask import Flask, render_template, request, jsonify, Response, url_for, redirect
 from flask_cors import CORS, cross_origin
 import pandas as pd
 from mongoDBOperations import MongoDBManagement
+from cassandraDBOps import DBOps
+from config.config import auth_details
 from FlipkratScrapping import FlipkratScrapper
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
@@ -19,7 +22,7 @@ collection_name = None
 #logger = getLog('flipkrat.py')
 
 free_status = True
-db_name = 'Flipkart-Scrapper'
+db_name = 'data'
 
 app = Flask(__name__)  # initialising the flask app with the name 'app'
 
@@ -45,8 +48,7 @@ class threadClass:
         global collection_name, free_status
         free_status = False
         collection_name = self.scrapper_object.getReviewsToDisplay(expected_review=self.expected_review,
-                                                                   searchString=self.searchString, username='Kavita',
-                                                                   password='kavita1610',
+                                                                   searchString=self.searchString,
                                                                    review_count=self.review_count)
         Logger('test.log').logger('INFO', "Thread run completed")
         free_status = True
@@ -68,7 +70,8 @@ def index():
             review_count = 0
             scrapper_object = FlipkratScrapper(executable_path=ChromeDriverManager().install(),
                                                chrome_options=chrome_options)
-            mongoClient = MongoDBManagement(username='Kavita', password='kavita1610')
+            #mongoClient = MongoDBManagement(username='Kavita', password='kavita1610')
+            dbClient = DBOps(os.path.join(os.getcwd(), 'config', 'secure-connect-flipkart-scrapper.zip'), auth_details['id'], auth_details['secret'])
             scrapper_object.openUrl("https://www.flipkart.com/")
             Logger('test.log').logger('INFO', 'Url hitted')
             #logger.info("Url hitted")
@@ -78,8 +81,10 @@ def index():
             scrapper_object.searchProduct(searchString=searchString)
             Logger('test.log').logger('INFO', f'Search begins for {searchString}')
             #logger.info(f"Search begins for {searchString}")
-            if mongoClient.isCollectionPresent(collection_name=searchString, db_name=db_name):
-                response = mongoClient.findAllRecords(db_name=db_name, collection_name=searchString)
+            if dbClient.isTablePresent(key_name=db_name, table_name=searchString):
+            #if mongoClient.isCollectionPresent(collection_name=searchString, db_name=db_name):
+                response = dbClient.findAllRecords(key_name=db_name, table_name=searchString)
+                #response = mongoClient.findAllRecords(db_name=db_name, collection_name=searchString)
                 reviews = [i for i in response]
                 if len(reviews) > expected_review:
                     result = [reviews[i] for i in range(0, expected_review)]
@@ -115,8 +120,10 @@ def feedback():
         if collection_name is not None:
             scrapper_object = FlipkratScrapper(executable_path=ChromeDriverManager().install(),
                                                chrome_options=chrome_options)
-            mongoClient = MongoDBManagement(username='Kavita', password='kavita1610')
-            rows = mongoClient.findAllRecords(db_name="Flipkart-Scrapper", collection_name=collection_name)
+            #mongoClient = MongoDBManagement(username='Kavita', password='kavita1610')
+            dbClient = DBOps(os.path.join(os.getcwd(), 'config', 'secure-connect-flipkart-scrapper.zip'), auth_details['id'], auth_details['secret'])
+            #rows = mongoClient.findAllRecords(db_name="Flipkart-Scrapper", collection_name=collection_name)
+            rows = dbClient.findAllRecords(key_name='data', table_name=collection_name)
             reviews = [i for i in rows]
             dataframe = pd.DataFrame(reviews)
             scrapper_object.saveDataFrameToFile(file_name="static/scrapper_data.csv", dataframe=dataframe)

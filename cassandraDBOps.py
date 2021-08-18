@@ -3,9 +3,6 @@ from cassandra.auth import PlainTextAuthProvider
 import pandas as pd
 import json
 from logger_class import Logger
-import os
-from config import config
-
 class DBOps:
 
     def __init__(self, config_path, auth_id, auth_secret):
@@ -122,7 +119,7 @@ class DBOps:
             status = self.isTablePresent(key_name, table_name)
             if not status:
                 query = f"""
-                    CREATE TABLE IF NOT EXISTS {key_name}.{table_name} (product_name text PRIMARY KEY, product_searched text, price text, offer_details text, discount_percent text, EMI text, ratings text, comment text, customer_name text, review_age text);
+                    CREATE TABLE IF NOT EXISTS {key_name}.{table_name} (id uuid, product_name text, product_searched text, price text, offer_details text, discount_percent text, EMI text, rating text, comment text, customer_name text, review_age text, PRIMARY KEY(id));
                 """
                 table = session.execute(query)
                 self.closeSession(session)
@@ -156,8 +153,8 @@ class DBOps:
         try:
             session = self.createSession()
             status = self.isTablePresent(key_name, table_name)
-            table_key = ', '.join([str(i) for i in record.keys()])
-            values = ", ".join([f"'{str(i)}'" for i in record.values()])
+            table_key = "id, "+', '.join([str(i) for i in record.keys()])
+            values = "uuid(), "+", ".join([f"'{str(i)}'" for i in record.values()])
             if status:
                 query = f"""
                     INSERT INTO {key_name}.{table_name}({table_key}) values ({values});     
@@ -178,6 +175,7 @@ class DBOps:
     def insertMultiRecords(self, key_name, table_name, records):
         """
         Function inserts multiple records into a table in the key space
+        records need to be a list of dictionaries for the records that need to be added
         """
         try:
             for record in records:
@@ -185,10 +183,103 @@ class DBOps:
         except Exception as e:
             Logger('test.log').logger('ERROR', f'record insertion failed \n {str(e)}')
 
+    def findFirstRecord(self, key_name, table_name, query=None):
+        """
+        Function returns the first record in the table
+        :param key_name:
+        :param table_name:
+        :param query:
+        :return:
+        """
+        try:
+            session = self.createSession()
+            status = self.isTablePresent(key_name, table_name)
+            if status:
+                query = f"SELECT * from {key_name}.{table_name} WHERE {list(query.keys())[0]}='{list(query.values())[0]}' LIMIT 1 ALLOW FILTERING"
+                print(query)
+                rows = session.execute(query)
+                self.closeSession(session)
+                Logger('test.log').logger('INFO', f'query was executed in {table_name} in keyspace {key_name}')
+                return [row for row in rows]
+            else:
+                table = self.createTable(key_name, table_name)
+                query = f"SELECT * from {key_name}.{table_name} WHERE {list(query.keys())[0]}='{list(query.values())[0]}' LIMIT 1 ALLOW FILTERING"
+                rows = session.execute(query)
+                self.closeSession(session)
+                Logger('test.log').logger('INFO', f'query was executed in {table_name} in keyspace {key_name}')
+                return [row for row in rows]
+        except Exception as e:
+            Logger('test.log').logger('ERROR', f'error with the query \n {str(e)}')
 
+    def findAllRecords(self, key_name, table_name):
+        """
+        Function returns all the records in the table in the keyspace
+        :param key_name:
+        :param table_name:
+        :return:
+        """
+        try:
+            session = self.createSession()
+            status = self.isTablePresent(key_name, table_name)
+            if status:
+                query = f"SELECT * from {key_name}.{table_name}"
+                print(query)
+                rows = session.execute(query)
+                self.closeSession(session)
+                Logger('test.log').logger('INFO', f'query was executed in {table_name} in keyspace {key_name}')
+                return [row for row in rows]
+            else:
+                table = self.createTable(key_name, table_name)
+                query = f"SELECT * from {key_name}.{table_name}"
+                rows = session.execute(query)
+                self.closeSession(session)
+                Logger('test.log').logger('INFO', f'query was executed in {table_name} in keyspace {key_name}')
+                return [row for row in rows]
+        except Exception as e:
+            Logger('test.log').logger('ERROR', f'error with the query \n {str(e)}')
 
-a = os.path.join(os.getcwd(), 'config', 'secure-connect-flipkart-scrapper.zip')
-b = config.auth_details['id']
-c = config.auth_details['secret']
+    def getDFfromDB(self, key_name, table_name):
+        """
+        Function creates and returns a pandas dataframe from the cassandra db
+        :param key_name:
+        :param table_name:
+        :return:
+        """
+        try:
+            status = self.isTablePresent(key_name, table_name)
+            if status:
+                records = self.findAllRecords(key_name, table_name)
+                df = pd.DataFrame(records)
+                return df[[col for col in df.columns if col != 'id']]
+            else:
+                Logger('test.log').logger('INFO', f'{table_name} is not available in the {key_space} db')
+        except Exception as e:
+            Logger('test.log').logger('ERROR', f'creating a df from cassandra \n {str(e)}')
 
-DBOps(a,b,c).insertOneRecord('data', 'table1', {'product_name':'a', 'product_searched': 'b'})
+    def saveDFIntoDB(self, key_name, table_name, dataframe):
+        """
+        Function inserts all the records from the dataframe into the cassandra db
+        :param key_name:
+        :param table_name:
+        :param dataframe:
+        :return:
+        """
+        try:
+            df_dict = json.loads(dataframe.T.to_json())
+            for index in df_dict:
+                self.insertOneRecord(key_name, table_name, df_dict[index])
+            Logger('test.log').logger('INFO', f'all records have been inserted')
+        except Exception as e:
+            Logger('test.log').logger('ERROR', f'error saving data from df into db \n {str(e)}')
+
+    def getResultToDisplayOnBrowser(self, key_name, table_name):
+        """
+        Function returns final result to display on the browser
+        :param key_name:
+        :param table_name:
+        :return:
+        """
+        try:
+            return self.findAllRecords(key_name, table_name)
+        except Exception as e:
+            Logger('test.log').logger('ERROR', f'Something went wrong on getting result from db \n {str(e)}')

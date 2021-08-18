@@ -11,7 +11,10 @@ from selenium.webdriver.common.by import By
 import pandas as pd
 
 from mongoDBOperations import MongoDBManagement
+from cassandraDBOps import DBOps
 
+import os
+from config.config import auth_details
 from logger_class import Logger
 
 
@@ -629,13 +632,15 @@ class FlipkratScrapper:
             Logger('test.log').logger('ERROR', f"(closeConnection) - Something went wrong on closing connection.\n" + str(e))
             raise Exception(f"(closeConnection) - Something went wrong on closing connection.\n" + str(e))
 
-    def getReviewsToDisplay(self, searchString, expected_review, username, password, review_count):
+    def getReviewsToDisplay(self, searchString, expected_review, review_count):
         """
         This function returns the review and other detials of product
         """
         try:
             search = searchString
-            mongoClient = MongoDBManagement(username=username, password=password)
+            #mongoClient = MongoDBManagement(username=username, password=password)
+            dbClient = DBOps(os.path.join(os.getcwd(), 'config', 'secure-connect-flipkart-scrapper.zip'), auth_details['id'], auth_details['secret'])
+
             locator = self.getLocatorsObject()
             for link in self.getProductLinks():
                 print('reviewing: ' + str(review_count))
@@ -644,13 +649,14 @@ class FlipkratScrapper:
                     if locator.getCustomerName() in self.driver.page_source:
                         product_name = self.getProductName()
                         print(product_name)
-                        db_search = mongoClient.findfirstRecord(db_name="Flipkart-Scrapper",
-                                                                collection_name=searchString,
-                                                                query={'product_name': product_name})
+                        db_search = dbClient.findFirstRecord('data', searchString, {'product_name': product_name})
+                        #db_search = mongoClient.findfirstRecord(db_name="Flipkart-Scrapper",
+                         #                                       collection_name=searchString,
+                          #                                      query={'product_name': product_name})
                         print(db_search)
-                        if db_search is not None:
+                        """if db_search is not None and len(db_search) >= 1:
                             print("Yes present" + str(len(db_search)))
-                            continue
+                            continue"""
                         print("False")
                         product_searched = self.getProductSearched(search_string=searchString)
                         price = self.getPrice()
@@ -675,16 +681,17 @@ class FlipkratScrapper:
                                     result = {'product_name': product_name,
                                               'product_searched': product_searched,
                                               'price': price,
-                                              'offer_details': offer_details,
+                                              'offer_details': ', '.join([offer for offer in offer_details]),
                                               'discount_percent': discount_percent,
                                               'EMI': EMI,
                                               'rating': ratings[i],
                                               'comment': comment[i],
                                               'customer_name': customer_name[i],
                                               'review_age': review_age[i]}
-                                    mongoClient.insertRecord(db_name="Flipkart-Scrapper",
-                                                             collection_name=searchString,
-                                                             record=result)
+                                    #mongoClient.insertRecord(db_name="Flipkart-Scrapper",
+                                     #                        collection_name=searchString,
+                                      #                       record=result)
+                                    dbClient.insertOneRecord('data', searchString, result)
                                     print(result)
                                     review_count = review_count + 1
                                     print(review_count)
