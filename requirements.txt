@@ -1,9 +1,7 @@
 beautifulsoup4==4.9.1
-brotlipy==0.7.0
 bs4==0.0.1
 cassandra-driver==3.25.0
-certifi==2021.5.30
-cffi @ file:///C:/ci/cffi_1625831749120/work
+certifi
 chardet==3.0.4
 click==7.1.2
 colorama==0.4.4
@@ -26,7 +24,6 @@ numpy==1.19.5
 pandas==1.1.5
 Pillow==8.1.2
 plotly==5.2.1
-pycparser @ file:///tmp/build/80754af9/pycparser_1594388511720/work
 pymongo==3.11.3
 pyparsing==2.4.7
 python-dateutil==2.8.1
