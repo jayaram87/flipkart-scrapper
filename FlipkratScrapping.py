@@ -650,13 +650,15 @@ class FlipkratScrapper:
                         product_name = self.getProductName()
                         print(product_name)
                         db_search = dbClient.findFirstRecord('data', searchString, {'product_name': product_name})
+                        if len(db_search) == 0:
+                            db_search = None
                         #db_search = mongoClient.findfirstRecord(db_name="Flipkart-Scrapper",
                          #                                       collection_name=searchString,
                           #                                      query={'product_name': product_name})
                         print(db_search)
-                        """if db_search is not None and len(db_search) >= 1:
+                        if db_search is not None:
                             print("Yes present" + str(len(db_search)))
-                            continue"""
+                            continue
                         print("False")
                         product_searched = self.getProductSearched(search_string=searchString)
                         price = self.getPrice()
@@ -664,7 +666,7 @@ class FlipkratScrapper:
                         discount_percent = self.getDiscountedPercent()
                         EMI = self.getEMIDetails()
                         total_review_page = self.getTotalReviewPage()
-                        count = 0
+                        count = 1
                         while count <= total_review_page:
                             if review_count > expected_review:
                                 return search

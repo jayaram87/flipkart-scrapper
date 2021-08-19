@@ -15,6 +15,7 @@ from config.config import auth_details
 from FlipkratScrapping import FlipkratScrapper
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
+from graphs import Graphs
 
 rows = {}
 collection_name = None
@@ -143,19 +144,21 @@ def graph():
 
 @app.route('/a', methods=['GET'])
 def plot_png():
-    fig = create_figure()
-    output = io.BytesIO()
+    #fig = create_figure()
+    fig, ids = Graphs(pd.read_csv("static/scrapper_data.csv")).reveiw_sentiment_graph()
+    """output = io.BytesIO()
     FigureCanvas(fig).print_png(output)
-    return Response(output.getvalue(), mimetype='image/png')
+    return Response(output.getvalue(), mimetype='image/png')"""
+    return render_template('graphs.html', ids=ids, graphJSON=fig)
 
 
 def create_figure():
     data = pd.read_csv("static/scrapper_data.csv")
-    dataframe = pd.DataFrame(data=data)
+    dataframe1 = pd.DataFrame(data=data)
     fig = Figure()
     axis = fig.add_subplot(1, 1, 1)
-    xs = dataframe['product_searched']
-    ys = dataframe['rating']
+    xs = dataframe1['product_searched']
+    ys = dataframe1['rating']
     axis.scatter(xs, ys)
     return fig
 
