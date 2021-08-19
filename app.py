@@ -29,6 +29,11 @@ app = Flask(__name__)  # initialising the flask app with the name 'app'
 
 #For selenium driver implementation on heroku
 chrome_options = webdriver.ChromeOptions()
+
+#You will need to specify the binary location for Heroku
+chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+chrome_options.add_experimental_option('useAutomationExtension', False)
+chrome_options.add_argument("--headless")
 chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument("disable-dev-shm-usage")
